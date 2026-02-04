@@ -1,5 +1,7 @@
 # ChatGPT-Conversation-Pruner
 
+> English version: [README.md](README.md)
+
 一个用于**缓解 ChatGPT 长对话场景下前端性能问题**的 Tampermonkey 用户脚本。
 
 该脚本通过在对话 DOM 达到“稳定态”后，**动态剪枝较早的对话轮次（turn）**，以降低页面中同时存在的 DOM 节点数量，从而改善滚动、输入和渲染时的卡顿问题。
