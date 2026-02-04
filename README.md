@@ -14,6 +14,11 @@
 
 ## 快速开始
 
+### 使用 Tampermonkey
+
+1. 安装浏览器扩展 **Tampermonkey**
+2. 访问 [ChatGPT Conversation Pruner](https://greasyfork.org/zh-CN/scripts/565110) 选择安装
+
 ### 手动安装
 
 1. 打开 Tampermonkey 管理面板，选择「新建脚本」
