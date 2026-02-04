@@ -17,7 +17,7 @@
 ### 手动安装
 
 1. 打开 Tampermonkey 管理面板，选择「新建脚本」
-2. 将 [chatgpt-conversation-pruner.js](chatgpt-conversation-pruner.js) 的内容完整粘贴进去
+2. 将 [chatgpt-conversation-pruner.js](chatgpt-conversation-pruner.user.js) 的内容完整粘贴进去
 3. 保存脚本并刷新 ChatGPT 页面
 
 ---
