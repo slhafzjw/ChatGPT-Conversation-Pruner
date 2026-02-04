@@ -11,6 +11,8 @@
 > 脚本灵感来自 [ChatGPT 长对话卡顿优化](https://greasyfork.org/zh-CN/scripts/559208-chatgpt-%E9%95%BF%E5%AF%B9%E8%AF%9D%E5%8D%A1%E9%A1%BF%E4%BC%98%E5%8C%96)。
 > 在其基于 DOM 卸载的优化思路基础上，本脚本进一步引入了**被剪枝 DOM 的缓存、按需恢复以及基于滚动状态的动态 DOM 管控机制**，以适配更长对话和更复杂的前端状态变化。
 
+> 该脚本在 ChatGPT 的辅助下完成开发。
+
 ---
 
 ## 快速开始
