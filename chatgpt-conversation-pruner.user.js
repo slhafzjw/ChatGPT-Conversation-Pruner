@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ChatGPT Conversation Pruner
 // @namespace    chatgpt-conversation-pruner
-// @version      2.3.3
+// @version      2.3.4
 // @description  缓解 ChatGPT 长对话场景下的前端性能问题
 // @match        https://chatgpt.com/*
 // @homepageURL  https://github.com/slhafzjw/ChatGPT-Conversation-Pruner
@@ -63,6 +63,10 @@
 
     if (!window[GLOBAL_CACHE_KEY]) window[GLOBAL_CACHE_KEY] = new Map();
     const CACHE_MAP = window[GLOBAL_CACHE_KEY];
+
+    // Cache entry shape:
+    // { el: HTMLElement, gen: symbol }
+    // gen is a per-instance DOM generation token to prevent duplicated caching across DOM rebuilds.
 
     /**********************************************************
    * Header badge
@@ -208,6 +212,15 @@
         return CACHE_MAP.get(key);
     }
 
+    function cacheCountForGen(cache, gen) {
+        if (!cache?.length) return 0;
+        let n = 0;
+        for (const it of cache) {
+            if (it && it.gen === gen && it.el && !it.el.isConnected) n++;
+        }
+        return n;
+    }
+
     /**********************************************************
    * 等待“对话 DOM 稳定态”
    **********************************************************/
@@ -259,6 +272,9 @@
    **********************************************************/
     function createConversationInstance(convKey) {
         const cache = getCacheForKey(convKey);
+        // Per-instance DOM generation token.
+        // Any cached nodes from a previous instance (same convKey) are considered stale.
+        let DOM_GEN = Symbol('chatgpt-pruner-dom-gen');
 
         let ACTIVE = true;
         let HISTORY_MODE = false;
@@ -266,6 +282,8 @@
         let IS_LOADING = false;
 
         let SENTINEL = null;
+                    // Sentinel lost usually means DOM rebuild.
+                    resetDomGen('sentinel-lost');
         let IO = null;
 
         let SCROLL_ROOT = null;
@@ -291,10 +309,18 @@
         // ✅ 新增：看门狗 timer
         let watchdogTimer = null;
 
+        function resetDomGen(reason) {
+            DOM_GEN = Symbol('chatgpt-pruner-dom-gen');
+            // Drop all previous-generation entries for this convKey.
+            sanitizeCache();
+            DEBUG && LOG.warn('DOM generation reset', { key: convKey, reason });
+            refreshHeaderBadge();
+        }
+
         function refreshHeaderBadge() {
             updateHeaderBadge({
                 live: getTurns().length,
-                cached: cache.length,
+                cached: cacheCountForGen(cache, DOM_GEN),
             });
         }
 
@@ -335,11 +361,18 @@
         }
 
         function sanitizeCache() {
-            if (!cache.length) return;
+            if (!cacheCountForGen(cache, DOM_GEN)) return;
+
+            // Keep only entries for this instance's DOM generation.
+            // Drop anything connected to DOM (already restored) or malformed.
             for (let i = cache.length - 1; i >= 0; i--) {
-                const el = cache[i];
-                if (el?.isConnected) cache.splice(i, 1);
+                const it = cache[i];
+                const el = it?.el;
+                if (!it || it.gen !== DOM_GEN || !el || el.isConnected) {
+                    cache.splice(i, 1);
+                }
             }
+
             if (cache.length > MAX_CACHE_PER_CONV) {
                 cache.splice(0, cache.length - MAX_CACHE_PER_CONV);
             }
@@ -373,44 +406,16 @@
         function safePrune(reason) {
             if (!ACTIVE) return;
             if (DISABLE_FIRST_SCREEN_PRUNE) {
-                // 对照开关开启时，仍需保证输入能触发 prune？
-                // 这里不强行剪枝，只刷新 badge；你如果希望实验模式也剪枝，把这行删掉即可。
                 refreshHeaderBadge();
                 return;
             }
             if (isVoiceActive()) {
-                // 语音态不做 remove
                 refreshHeaderBadge();
                 return;
             }
 
-            const liveNow = getTurns().length;
-
-            // 关键：同路由重建后，cache 里全是“旧树节点引用”，会导致重复累计
-            // 触发条件：live 明显大 + cache 非空
-            if (cache.length > 0 && liveNow > HIDE_BEYOND) {
-                // 估算旧树占比：旧树节点通常 !isConnected
-                let stale = 0;
-                const sample = Math.min(cache.length, 32);
-                for (let i = 0; i < sample; i++) {
-                    const el = cache[cache.length - 1 - i];
-                    if (el && !el.isConnected) stale++;
-                }
-                // 如果样本中大部分是 stale，直接清空（避免翻倍/错位）
-                if (sample > 0 && stale / sample >= 0.6) {
-                    DEBUG && LOG.warn('safePrune: drop stale cache before prune', {
-                        key: convKey,
-                        reason,
-                        live: liveNow,
-                        cached: cache.length,
-                        stale,
-                        sample
-                    });
-                    cache.length = 0;
-                }
-            }
-
-            // 正常 sanitize + prune
+            // With DOM generation tagging, stale-cache duplication across route switches
+            // is inherently prevented. Keep sanitize + prune as the "safe" path.
             sanitizeCache();
             clearHiddenTurns();
             prune();
@@ -456,7 +461,7 @@
             for (let i = 0; i < removeBefore; i++) {
                 const el = turns[i];
                 if (!el) continue;
-                cache.push(el);
+                cache.push({ el, gen: DOM_GEN });
                 el.remove();
             }
 
@@ -479,7 +484,11 @@
 
             let restored = 0;
             while (restored < BATCH_SIZE && cache.length) {
-                const el = cache.pop();
+                const it = cache.pop();
+                const el = it?.el;
+                if (!it || it.gen !== DOM_GEN || !el || el.isConnected) {
+                    continue;
+                }
                 sentinel.insertAdjacentElement('afterend', el);
                 el.style.display = '';
                 restored++;
@@ -506,7 +515,7 @@
                 const e = entries[0];
                 if (!e?.isIntersecting) return;
                 if (!ACTIVE || IS_LOADING) return;
-                if (!cache.length) return;
+                if (!cacheCountForGen(cache, DOM_GEN)) return;
                 loadMoreHistory();
             }, {
                 root,
@@ -615,6 +624,8 @@
                 // 2) container 被替换：重绑 growObserver + 立刻 safePrune
                 const nowContainer = getConversationContainer();
                 if (nowContainer && nowContainer !== OBSERVED_CONTAINER) {
+                    // Same route but DOM subtree was replaced: cached nodes from previous tree are invalid.
+                    resetDomGen('container-replaced');
                     try { growObserver.disconnect(); } catch {}
                     try {
                         growObserver.observe(nowContainer, { childList: true, subtree: true });
