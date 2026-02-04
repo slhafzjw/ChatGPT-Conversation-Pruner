@@ -62,7 +62,7 @@ The script exposes a small set of configurable parameters to balance performance
 
 - **Live / cached turn indicator**
   - Displays `live` and `cached` turn counts in the page header
-  - Updates automatically during pruning, restoration, and DOM rebuilds
+  - Updates automatically during pruning, restoration, 和 DOM rebuilds
   - Provides a clear visual indicator of DOM size and script activity
 
 - **Automatic pruning resume on scroll-to-bottom**
@@ -101,8 +101,6 @@ The core goal of this script is:
 
 > **Reduce the number of simultaneously mounted conversation turns without affecting reading or interaction.**
 
----
-
 ### 2. Stable-State Detection
 
 To avoid interfering with:
@@ -117,8 +115,6 @@ The script periodically checks:
 
 Only after multiple consecutive stable checks does pruning become active.
 
----
-
 ### 3. Pruning and Caching
 
 - When the number of live turns exceeds the configured threshold:
@@ -128,8 +124,6 @@ Only after multiple consecutive stable checks does pruning become active.
 
 Cached turns can be restored when needed.
 
----
-
 ### 4. History Restoration and Scroll Control
 
 - A hidden sentinel element is placed at the top of the conversation
@@ -137,8 +131,6 @@ Cached turns can be restored when needed.
 - As the user scrolls upward, cached turns are restored incrementally
 
 Scroll position is compensated to avoid sudden jumps.
-
----
 
 ### 5. Scroll Containers and State Machine
 
@@ -151,8 +143,6 @@ Based on scroll position, the script transitions between:
 - **History mode**: browsing older content, pruning paused
 - **Voice mode**: turns are hidden but not removed
 
----
-
 ### 6. DOM Rebuild Protection
 
 In some cases, ChatGPT replaces the entire conversation DOM subtree on the same route.
@@ -163,8 +153,6 @@ A lightweight watchdog detects:
 - Sentinel loss
 
 When detected, observers are reattached and a safe pruning pass is executed to prevent cache duplication or state corruption.
-
----
 
 ### 7. Limitations
 
