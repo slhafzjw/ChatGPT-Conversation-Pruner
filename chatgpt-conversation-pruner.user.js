@@ -2,10 +2,14 @@
 // @name         ChatGPT Conversation Pruner
 // @namespace    chatgpt-conversation-pruner
 // @version      2.3.3
-// @description  仅在对话 DOM 稳定后接管；保留 v1.6 的 Debug/对照实验/首屏隐藏/语音态处理/性能日志；新增顶栏 turns 状态指示（page-header锚定）；修复同路由DOM重建导致实例“丢失”，并确保任意输入可触发 prune 且不重复累计缓存。
+// @description  缓解 ChatGPT 长对话场景下的前端性能问题
 // @match        https://chatgpt.com/*
+// @homepageURL  https://github.com/slhafzjw/ChatGPT-Conversation-Pruner
+// @supportURL   https://github.com/slhafzjw/ChatGPT-Conversation-Pruner/issues
 // @grant        none
 // @run-at       document-start
+// @noframes
+// @author       slhaf
 // @license      MIT
 // ==/UserScript==
 
