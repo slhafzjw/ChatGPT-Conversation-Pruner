@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         ChatGPT 性能优化
+// @name         ChatGPT Conversation Pruner
 // @namespace    chatgpt-conversation-pruner
 // @version      2.3.3
 // @description  仅在对话 DOM 稳定后接管；保留 v1.6 的 Debug/对照实验/首屏隐藏/语音态处理/性能日志；新增顶栏 turns 状态指示（page-header锚定）；修复同路由DOM重建导致实例“丢失”，并确保任意输入可触发 prune 且不重复累计缓存。
