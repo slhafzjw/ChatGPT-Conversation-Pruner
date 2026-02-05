@@ -110,7 +110,7 @@
 
         badge.style.left = `${a.right - h.left + 8}px`;
         badge.style.top = `${a.top - h.top + a.height / 2}px`;
-        badge。style.transform = 'translateY(-50%)';
+        badge.style.transform = 'translateY(-50%)';
 
         return badge;
     }
