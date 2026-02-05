@@ -19,6 +19,10 @@ It does **not** intercept network requests and does **not** collect any user dat
 
 ## Quick Start
 
+### Download Appimage
+
+Go to [Released Version](https://github.com/slhafzjw/ChatGPT-Conversation-Pruner/releases/tag/Integrated) and download.
+
 ### Using Tampermonkey
 
 1. Install the **Tampermonkey** browser extension
