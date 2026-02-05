@@ -17,6 +17,10 @@
 
 ## 快速开始
 
+### 下载 Appimage
+
+前往[发布页面](https://github.com/slhafzjw/ChatGPT-Conversation-Pruner/releases/tag/Integrated)进行下载
+
 ### 使用 Tampermonkey
 
 1. 安装浏览器扩展 **Tampermonkey**
